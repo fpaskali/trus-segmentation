@@ -172,7 +172,7 @@ def rot_and_elastic_deform(image, mask, image_path, mask_path, times, angle_rang
     """
     counter = 0
     for i in range(times):
-        angle = np.random.randint(angle_range)
+        angle = np.random.randint(*angle_range)
         # Rotation
         image = _fix_image_size(ndimage.rotate(image, angle, cval=image.min()), image.shape)
         mask = _fix_image_size(ndimage.rotate(mask, angle), mask.shape)
