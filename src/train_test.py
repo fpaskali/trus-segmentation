@@ -33,7 +33,7 @@ def force_CPU():
 
 def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=None, stride_size=None,
           train_folder='data/train', val_folder='data/val', test_folder='data/test',
-          result_folder=f'data/results/', force_cpu=False):
+          result_folder=f'data/results', force_cpu=False):
     """
     Train a model in a predefined number of epochs. After training a graph with
     model metrics will be saved in data/metrics/{model_name}. The weights are
@@ -125,7 +125,7 @@ def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=N
      
 def test(image_size, model_name ="model1", batch_size=100, patch_size=None, stride_size=None,
           train_folder='data/train', val_folder='data/val', test_folder='data/test',
-          result_folder='data/results/', force_cpu=False):
+          result_folder='data/results', force_cpu=False):
     """
     Use weights stored in HDF5 format to perform segmentation. A NRRD results 
     will be saved in data/results/{model_name}
@@ -172,11 +172,11 @@ def test(image_size, model_name ="model1", batch_size=100, patch_size=None, stri
     if (patch_size and stride_size):
         test_data = data_manager.test_patches_generator()
         results = model.predict_generator(test_data, steps=test_size, verbose=1)
-        data_manager.save_result(results)
+        data_manager.save_result_patches(results)
     else:   
         test_data = data_manager.test_generator()
         results = model.predict_generator(test_data, steps=test_size, verbose=1)
-        data_manager.save_result_patches(results)
+        data_manager.save_result(results)
 
     clear_session()
 
