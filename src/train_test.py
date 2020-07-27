@@ -33,7 +33,7 @@ def force_CPU():
 
 def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=None, stride_size=None,
           train_folder='data/train', val_folder='data/val', test_folder='data/test',
-          result_folder='data/results/{model_name}', force_cpu=False):
+          result_folder=f'data/results/', force_cpu=False):
     """
     Train a model in a predefined number of epochs. After training a graph with
     model metrics will be saved in data/metrics/{model_name}. The weights are
@@ -70,7 +70,7 @@ def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=N
     if force_cpu:
         force_CPU()
         
-    data_manager = DataManager(train_folder, val_folder, test_folder, result_folder, 
+    data_manager = DataManager(train_folder, val_folder, test_folder, f'{result_folder}/{model_name}', 
                                image_size, patch_size, stride_size)
 
     train_size = data_manager.get_train_size()
@@ -125,7 +125,7 @@ def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=N
      
 def test(image_size, model_name ="model1", batch_size=100, patch_size=None, stride_size=None,
           train_folder='data/train', val_folder='data/val', test_folder='data/test',
-          result_folder='data/results/{model_name}', force_cpu=False):
+          result_folder='data/results/', force_cpu=False):
     """
     Use weights stored in HDF5 format to perform segmentation. A NRRD results 
     will be saved in data/results/{model_name}
@@ -158,7 +158,7 @@ def test(image_size, model_name ="model1", batch_size=100, patch_size=None, stri
     if force_cpu:
         force_CPU()
         
-    data_manager = DataManager(train_folder, val_folder, test_folder, result_folder, 
+    data_manager = DataManager(train_folder, val_folder, test_folder, f'{result_folder}/{model_name}', 
                                image_size, patch_size, stride_size)
     
     if model_name == 'model1':
