@@ -21,15 +21,15 @@ def wholeimage_training(model_name, epochs):
     processor.resize_images((128,128,128))
     processor.normalize()
     image_names = processor.image_names
-    for train_idx, val_idx in cv_split(image_names, 10, shuffle=True):
+    for train_idx, val_idx in cv_split(image_names, 1, shuffle=True):
         processor.create_root_skeleton(preserve_results=True)
         processor.save_images('data/train', train_idx)
         processor.save_images('data/val', val_idx)
         augment_images('data/train')
         train(epochs, (128,128,128), model_name)
         test((128,128,128), model_name, test_folder='data/val')
-    postprocess_images('data/results', 'data/results/postprocessed')
-    save_metrics_to_csv(f'metrics/wi_training.csv','data/results/postprocessed', 'data/val/mask')
+    postprocess_images(f'data/results/{model_name}', f'data/results/postprocessed/{model_name}')
+    save_metrics_to_csv(f'metrics/{model_name}/wi_training.csv',f'data/results/postprocessed/{model_name}', 'data/val/mask')
 
 def patch_wise_training(model_name, epochs):
     print('PREPROCESSING...')
@@ -112,17 +112,17 @@ def cv_split(data, k_fold, shuffle=False):
 #%% Example usage
 # Whole image training using Model 1, and epochs = 35. Training set should be located in 
 # 'data/raw_train/image' and 'data/raw_train/mask'       
-wholeimage_training('model1', 35)
+wholeimage_training('model3', 35)
 
 # Testing should be done after training the model. It uses weights generated 
 # by train function. Testing set should be located in 'data/raw_test/image'
-whole_image_testing('model1')
+#whole_image_testing('model1')
 
 
 # Patchwise training using Model 2, and epochs = 35. Training set should be located in 
 # 'data/raw_train/image' and 'data/raw_train/mask'
-patch_wise_training('model2', 35)
+#patch_wise_training('model2', 35)
 
 # Testing should be done after training the model. It uses weights generated 
 # by train function. Testing set should be located in 'data/raw_test/image'
-patch_wise_testing('model2')
+#patch_wise_testing('model2')
