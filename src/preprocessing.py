@@ -228,26 +228,17 @@ class ImageProcessor(object):
         if target_x > org_x:
             modulo = (target_x - org_x) % 2
             offset = (target_x - org_x) // 2
-            if modulo == 0:
-                image = np.pad(image, ((offset,offset),(0,0),(0,0)), mode='constant')
-            else:
-                image = np.pad(image, ((offset, offset + modulo),(0,0),(0,0)), mode='constant')
+            image = np.pad(image, ((offset, offset + modulo),(0,0),(0,0)), mode='constant')
                 
         if target_y > org_y:
             modulo  = (target_y - org_y) % 2
             offset = (target_y - org_y) // 2
-            if modulo == 0:           
-                image = np.pad(image, ((0,0),(offset,offset),(0,0)), mode='constant')
-            else: 
-                image = np.pad(image, ((0,0),(offset, offset + modulo),(0,0)), mode='constant')
+            image = np.pad(image, ((0,0),(offset, offset + modulo),(0,0)), mode='constant')
                 
         if target_z > org_z:
             modulo  = (target_z - org_z) % 2
             offset = (target_z - org_z) // 2
-            if modulo == 0:           
-                image = np.pad(image, ((0,0),(0,0),(offset,offset)), mode='constant')
-            else: 
-                image = np.pad(image, ((0,0),(0,0),(offset, offset + modulo)), mode='constant')
+            image = np.pad(image, ((0,0),(0,0),(offset, offset + modulo)), mode='constant')
                 
         org_x, org_y, org_z = image.shape
         off_x, off_y, off_z = (org_x - target_x)//2, (org_y - target_y)//2, (org_z - target_z)//2
