@@ -14,14 +14,14 @@ from postprocessing import postprocess_images
 from metrics import save_metrics_to_csv
 
 
-def wholeimage_training(model_name, epochs):   
+def wholeimage_training(model_name, epochs, kfold=10):   
     print('PREPROCESSING...')
     processor = ImageProcessor('data/raw_train')
     processor.crop_images((512,512,64))
     processor.resize_images((128,128,128))
     processor.normalize()
     image_names = processor.image_names
-    for train_idx, val_idx in cv_split(image_names, 1, shuffle=True):
+    for train_idx, val_idx in cv_split(image_names, kfold, shuffle=True):
         processor.create_root_skeleton(preserve_results=True)
         processor.save_images('data/train', train_idx)
         processor.save_images('data/val', val_idx)
@@ -31,13 +31,13 @@ def wholeimage_training(model_name, epochs):
     postprocess_images(f'data/results/{model_name}', f'data/results/postprocessed/{model_name}')
     save_metrics_to_csv(f'metrics/{model_name}/wi_training.csv',f'data/results/postprocessed/{model_name}', 'data/val/mask')
 
-def patch_wise_training(model_name, epochs):
+def patch_wise_training(model_name, epochs, kfold=10):
     print('PREPROCESSING...')
     processor = ImageProcessor('data/raw_train')
     processor.crop_images((512,512,64))
     processor.normalize()
     image_names = processor.image_names
-    for train_idx, val_idx in cv_split(image_names, 10, shuffle=True):
+    for train_idx, val_idx in cv_split(image_names, kfold, shuffle=True):
         processor.create_root_skeleton(preserve_results=True)
         processor.save_images('data/train', train_idx)
         processor.save_images('data/val', val_idx)
@@ -91,6 +91,7 @@ def cv_split(data, k_fold, shuffle=False):
     """
     data_idx = [*range(len(data))]
     if shuffle: random.shuffle(data_idx)
+    assert k_fold > 1, "ERROR: K_fold cannot be 1 or less."
     assert k_fold <= len(data_idx), "ERROR: K_fold is greater than sample size."
     kfold_size = len(data_idx) // k_fold 
     folds = [kfold_size for x in range(k_fold)]
@@ -112,7 +113,7 @@ def cv_split(data, k_fold, shuffle=False):
 #%% Example usage
 # Whole image training using Model 1, and epochs = 35. Training set should be located in 
 # 'data/raw_train/image' and 'data/raw_train/mask'       
-wholeimage_training('model3', 35)
+#wholeimage_training('model3', 35)
 
 # Testing should be done after training the model. It uses weights generated 
 # by train function. Testing set should be located in 'data/raw_test/image'
@@ -126,3 +127,6 @@ wholeimage_training('model3', 35)
 # Testing should be done after training the model. It uses weights generated 
 # by train function. Testing set should be located in 'data/raw_test/image'
 #patch_wise_testing('model2')
+
+wholeimage_training('model3', 35)
+wholeimage_training('model1', 40)
