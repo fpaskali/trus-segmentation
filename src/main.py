@@ -5,7 +5,7 @@ Created on Wed Feb  5 14:35:20 2020
 
 @author: paskali
 """
-import random
+import random, time, os
 import numpy as np
 from preprocessing import ImageProcessor
 from augment import augment_images
@@ -15,21 +15,31 @@ from metrics import save_metrics_to_csv
 
 
 def wholeimage_training(model_name, epochs, kfold=10):   
+    times = []
     print('PREPROCESSING...')
     processor = ImageProcessor('data/raw_train')
     processor.crop_images((512,512,64))
     processor.resize_images((128,128,128))
     processor.normalize()
     image_names = processor.image_names
+    round = 1
     for train_idx, val_idx in cv_split(image_names, kfold, shuffle=True):
+        start = time.time()
+        if not times:
+            print(f'Round: {round}/{kfold} ETA?')
+        else:
+            print(f'Round: {round}/{kfold} ETA: {parse_time(int(np.mean(times)*(kfold-round+1)))}')
         processor.create_root_skeleton(preserve_results=True)
         processor.save_images('data/train', train_idx)
         processor.save_images('data/val', val_idx)
         augment_images('data/train')
         train(epochs, (128,128,128), model_name)
         test((128,128,128), model_name, test_folder='data/val')
-    postprocess_images(f'data/results/{model_name}', f'data/results/postprocessed/{model_name}')
-    save_metrics_to_csv(f'metrics/{model_name}/wi_training.csv',f'data/results/postprocessed/{model_name}', 'data/val/mask')
+        round += 1
+        postprocess_images(f'data/results/{model_name}', f'data/postprocessed/{model_name}')
+        save_metrics_to_csv(f'metrics/{model_name}/wi_training.csv',f'data/postprocessed/{model_name}', 'data/val/mask')
+        end = time.time()
+        times.append(end-start)
 
 def patch_wise_training(model_name, epochs, kfold=10):
     print('PREPROCESSING...')
@@ -109,7 +119,16 @@ def cv_split(data, k_fold, shuffle=False):
         pos += fold_size
         
     return splits
+
+def parse_time(seconds):
+    minutes = seconds / 60
+    rest_seconds = int(seconds % 60)
     
+    hours = int(minutes / 60)
+    rest_minutes = int(minutes % 60)
+    
+    return f'{hours}:{rest_minutes:02}:{rest_seconds:02}'
+
 #%% Example usage
 # Whole image training using Model 1, and epochs = 35. Training set should be located in 
 # 'data/raw_train/image' and 'data/raw_train/mask'       
@@ -127,6 +146,5 @@ def cv_split(data, k_fold, shuffle=False):
 # Testing should be done after training the model. It uses weights generated 
 # by train function. Testing set should be located in 'data/raw_test/image'
 #patch_wise_testing('model2')
-
-wholeimage_training('model3', 35)
-wholeimage_training('model1', 40)
+# 
+wholeimage_training('model1', 35)
