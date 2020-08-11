@@ -11,11 +11,14 @@ import numpy as np
 from medpy.metric.binary import dc, jc, hd, asd
 
 def _create_metrics_csv(filename):
-    with open(filename, 'w', newline='') as csvfile:
-        fieldnames = ['image', 'dc', 'js', 'hd', 'asd']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        
-        writer.writeheader()
+    if not os.path.exists(filename):
+        with open(filename, 'w', newline='') as csvfile:
+            fieldnames = ['image', 'dc', 'js', 'hd', 'asd']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            
+            writer.writeheader()
+    else:
+        pass
 
 def save_metrics_to_csv(filename, result_folder='data/results', reference_folder='data/test/mask',
                         voxelspacing=(0.538624, 0.538624, 0.5)):
@@ -40,7 +43,7 @@ def save_metrics_to_csv(filename, result_folder='data/results', reference_folder
 
     """
     _create_metrics_csv(filename)
-    
+
     name_list = os.listdir(reference_folder)
     
     with open(filename, 'a') as csvfile:
@@ -51,12 +54,19 @@ def save_metrics_to_csv(filename, result_folder='data/results', reference_folder
             ref = np.where(ref > 0.5, 1, 0)
 
             metrics_dict = {}
-            metrics_dict['image'] = name
-            metrics_dict['dc'] = dc(res, ref)
-            metrics_dict['js'] = jc(res, ref)
-            metrics_dict['hd'] = hd(res, ref, voxelspacing=voxelspacing)
-            metrics_dict['asd'] = asd(res, ref, voxelspacing=voxelspacing)
-            
+            try:
+                metrics_dict['image'] = name
+                metrics_dict['dc'] = dc(res, ref)
+                metrics_dict['js'] = jc(res, ref)
+                metrics_dict['hd'] = hd(res, ref, voxelspacing=voxelspacing)
+                metrics_dict['asd'] = asd(res, ref, voxelspacing=voxelspacing)
+            except:
+                metrics_dict['image'] = name
+                metrics_dict['dc'] =  'Error'
+                metrics_dict['js'] =  'Error'
+                metrics_dict['hd'] =  'Error'
+                metrics_dict['asd'] = 'Error'
+
             writer = csv.DictWriter(csvfile, fieldnames=list(metrics_dict.keys()))
             writer.writerow(metrics_dict)
 
