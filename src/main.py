@@ -5,7 +5,7 @@ Created on Wed Feb  5 14:35:20 2020
 
 @author: paskali
 """
-import random, time, os
+import random, time
 import numpy as np
 from preprocessing import ImageProcessor
 from augment import augment_images
@@ -40,6 +40,29 @@ def wholeimage_training(model_name, epochs, kfold=10):
         save_metrics_to_csv(f'metrics/{model_name}/wi_training.csv',f'data/postprocessed/{model_name}', 'data/val/mask')
         end = time.time()
         times.append(end-start)
+    save_training_info(f'metrics/{model_name}/training_report.txt', model_name, epochs, kfold, parse_time(int(np.sum(times))))
+
+def train_test_training(model_name, epochs, val_size=0.2):   
+    print('PREPROCESSING...')
+    processor = ImageProcessor('data/raw_train')
+    processor.crop_images((512,512,64))
+    processor.resize_images((128,128,128))
+    processor.normalize()
+    image_names = processor.image_names
+    round = 1
+    train_idx, val_idx = train_val_split(image_names,val_size,random_seed='Filip')
+    start = time.time()
+    processor.create_root_skeleton(preserve_results=True)
+    processor.save_images('data/train', train_idx)
+    processor.save_images('data/val', val_idx)
+    augment_images('data/train')
+    train(epochs, (128,128,128), model_name)
+    test((128,128,128), model_name, test_folder='data/val')
+    round += 1
+    postprocess_images(f'data/results/{model_name}', f'data/postprocessed/{model_name}')
+    save_metrics_to_csv(f'metrics/{model_name}/tt_training.csv',f'data/postprocessed/{model_name}', 'data/val/mask')
+    end = time.time()
+    save_training_info(f'metrics/{model_name}/training_report.txt', model_name, epochs, kfold, parse_time(end-start))
 
 def patch_wise_training(model_name, epochs, kfold=10):
     print('PREPROCESSING...')
@@ -120,6 +143,23 @@ def cv_split(data, k_fold, shuffle=False):
         
     return splits
 
+def train_val_split(data, val_size, random_seed=None):
+    data_idx = [*range(len(data))]
+    random.seed(random_seed)
+    random.shuffle(data_idx)
+    
+    if type(val_size) == float:
+        val_size = round(len(data_idx) * val_size)
+    elif type(val_size) == int:
+        val_size = val_size
+    else:
+        raise ValueError('val_size should be int or float')
+        
+    val = data_idx[:val_size]
+    train = data_idx[val_size:]
+    
+    return train, val
+
 def parse_time(seconds):
     minutes = seconds / 60
     rest_seconds = int(seconds % 60)
@@ -128,6 +168,13 @@ def parse_time(seconds):
     rest_minutes = int(minutes % 60)
     
     return f'{hours}:{rest_minutes:02}:{rest_seconds:02}'
+
+def save_training_info(filename, model_name, epochs, kfolds, total_time):
+    with open(filename, "w") as report:
+        report.write(f"Model name: {model_name}\n")
+        report.write(f"Number of epochs: {epochs}\n")
+        report.write(f"Cross-validation k-folds: {kfolds}\n")
+        report.write(f"Total time of training: {total_time}\n")
 
 #%% Example usage
 # Whole image training using Model 1, and epochs = 35. Training set should be located in 
@@ -147,4 +194,5 @@ def parse_time(seconds):
 # by train function. Testing set should be located in 'data/raw_test/image'
 #patch_wise_testing('model2')
 # 
-wholeimage_training('model1', 35)
+# wholeimage_training('model3', 50)
+train_test_training('model3', 100)
