@@ -5,12 +5,17 @@ Created on Thu Sep 26 11:25:24 2019
 
 @author: paskali
 """
+from functools import partial
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Conv3D, PReLU, add, Conv3DTranspose, Concatenate, BatchNormalization, Dropout
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+from kerastuner import HyperParameters
+from kerastuner.tuners import Hyperband
+
+hp = HyperParameters()
 
 def model3(input_size = (128,128,128,1), weights = None, show_summary=False):
     inputs = Input(input_size)
@@ -102,9 +107,14 @@ def model3(input_size = (128,128,128,1), weights = None, show_summary=False):
     
     model = Model(inputs=inputs, outputs=output)
     
-    optimizer = Adam(lr=0.00001, beta_1=0.9, beta_2=0.999, amsgrad=False)
+    optimizer = Adam(learning_rate=hp.Choice('learning_rate',
+                                             [1e-2,1e-3,1e-4,1e-5]), beta_1=0.9, beta_2=0.999, amsgrad=False)
     
-    model.compile(optimizer=optimizer, loss = jaccard_distance_loss,  metrics = ['accuracy'])
+    model.compile(optimizer=optimizer, 
+                  loss = partial(jaccard_distance_loss,
+                                 bc_weight=hp.Float('bc_weight', 0.1, 2, step=0.2),
+                                 dc_weight=hp.Float('dc_weight', 0.1, 2, step=0.2)),
+                  metrics = ['accuracy'])
     
     if show_summary:
         model.summary()
