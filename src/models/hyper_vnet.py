@@ -108,10 +108,13 @@ def model3(input_size = (128,128,128,1), weights = None, show_summary=False):
     model = Model(inputs=inputs, outputs=output)
     
     optimizer = Adam(learning_rate=hp.Choice('learning_rate',
-                                             [1e-2,1e-3,1e-4,1e-5]), beta_1=0.9, beta_2=0.999, amsgrad=False)
+                                             [1e-2,1e-3,1e-4,1e-5]), 
+                     beta_1=0.9, 
+                     beta_2=0.999, 
+                     amsgrad=False)
     
     model.compile(optimizer=optimizer, 
-                  loss = partial(jaccard_distance_loss,
+                  loss = partial(hybrid_loss,
                                  bc_weight=hp.Float('bc_weight', 0.1, 2, step=0.2),
                                  dc_weight=hp.Float('dc_weight', 0.1, 2, step=0.2)),
                   metrics = ['accuracy'])
