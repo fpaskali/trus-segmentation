@@ -171,18 +171,18 @@ def test(model_name, image_size, hyper_par, test_folder='data/test',
 
     clear_session()
 
-# train("the_best_model_3.11.2020", (128,128,128), 150, hyper_par = {"factor":15,
-#                                                                   "l_rate":0.0001,
-#                                                                   "beta1":0.43649430628078034,
-#                                                                   "beta2":0.5898459767675351,
-#                                                                   "ams_grad":False,
-#                                                                   "loss":"jaccard",
-#                                                                   "fifth":True,
-#                                                                   "rotate":0.533,
-#                                                                   "deform":0.901,
-#                                                                   "filters":0.370})
+train("the_best_model_12.11.2020", (128,128,128), 150, hyper_par = {"factor":15,
+                                                                  "l_rate":0.0001,
+                                                                  "beta1":0.43649430628078034,
+                                                                  "beta2":0.5898459767675351,
+                                                                  "ams_grad":False,
+                                                                  "loss":"jaccard",
+                                                                  "fifth":True,
+                                                                  "rotate":0.533,
+                                                                  "deform":0.901,
+                                                                  "filters":0.370})
 
-# train("second_best_model_3.11.2020", (128,128,128), 150, hyper_par={"factor":15,
+# train("second_best_model_12.11.2020", (128,128,128), 150, hyper_par={"factor":15,
 #                                                                     "l_rate":0.001,
 #                                                                     "beta1":0.14369651566686886,
 #                                                                     "beta2":0.8290607750524758,
@@ -193,7 +193,7 @@ def test(model_name, image_size, hyper_par, test_folder='data/test',
 #                                                                     "deform":0.130,
 #                                                                     "filters":0.807})
 
-# train("third_best_model_3.11.2020", (128,128,128), 150, hyper_par={"factor":15,
+# train("third_best_model_12.11.2020", (128,128,128), 150, hyper_par={"factor":15,
 #                                                                     "l_rate":0.0001,
 #                                                                     "beta1":0.5209463997379207,
 #                                                                     "beta2":0.7764027455241465,
@@ -204,18 +204,18 @@ def test(model_name, image_size, hyper_par, test_folder='data/test',
 #                                                                     "deform":0.958,
 #                                                                     "filters":0.688})
 
-test("the_best_model_12.11.2020", (128,128,128),  test_folder="data/val", hyper_par = {"factor":15,
-                                                                                    "l_rate":0.0001,
-                                                                                    "beta1":0.43649430628078034,
-                                                                                    "beta2":0.5898459767675351,
-                                                                                    "ams_grad":False,
-                                                                                    "loss":"jaccard",
-                                                                                    "fifth":True,
-                                                                                    "rotate":0.533,
-                                                                                    "deform":0.901,
-                                                                                    "filters":0.370})
+# test("the_best_model_12.11.2020", (128,128,128),  test_folder="data/val", hyper_par = {"factor":15,
+#                                                                                    "l_rate":0.0001,
+#                                                                                    "beta1":0.43649430628078034,
+#                                                                                    "beta2":0.5898459767675351,
+#                                                                                    "ams_grad":False,
+#                                                                                    "loss":"jaccard",
+#                                                                                    "fifth":True,
+#                                                                                    "rotate":0.533,
+#                                                                                    "deform":0.901,
+#                                                                                    "filters":0.370})
 
-# test("second_best_model_3.11.2020", (128,128,128), test_folder="data/val", hyper_par={"factor":15,
+# test("second_best_model_12.11.2020", (128,128,128), test_folder="data/val", hyper_par={"factor":15,
 #                                                                                     "l_rate":0.001,
 #                                                                                     "beta1":0.14369651566686886,
 #                                                                                     "beta2":0.8290607750524758,
@@ -226,7 +226,7 @@ test("the_best_model_12.11.2020", (128,128,128),  test_folder="data/val", hyper_
 #                                                                                     "deform":0.130,
 #                                                                                     "filters":0.807})
 
-# test("third_best_model_3.11.2020", (128,128,128), test_folder="data/val", hyper_par={"factor":15,
+# test("third_best_model_12.11.2020", (128,128,128), test_folder="data/val", hyper_par={"factor":15,
 #                                                                                     "l_rate":0.0001,
 #                                                                                     "beta1":0.5209463997379207,
 #                                                                                     "beta2":0.7764027455241465,
@@ -237,7 +237,7 @@ test("the_best_model_12.11.2020", (128,128,128),  test_folder="data/val", hyper_
 #                                                                                     "deform":0.958,
 #                                                                                     "filters":0.688})
 
-# test("the_best_model_3.11.2020", (128,128,128), test_folder="data/test", hyper_par = {"factor":15,
+# test("the_best_model_12.11.2020", (128,128,128), test_folder="data/test", hyper_par = {"factor":15,
 #                                                                                     "l_rate":0.0001,
 #                                                                                     "beta1":0.43649430628078034,
 #                                                                                     "beta2":0.5898459767675351,
