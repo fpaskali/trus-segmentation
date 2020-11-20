@@ -5,7 +5,7 @@ Created on Mon Dec 23 15:42:17 2019
 
 @author: paskali
 """
-import os, nrrd, shutil, json
+import os, nrrd, json, argparse
 import numpy as np
 from scipy import ndimage
 
@@ -13,8 +13,7 @@ class ImageProcessor(object):
     
     def __init__(self, input_folder='data/raw_train', test_set=False):
         """
-        Regenerate root folder structure in data folder, that is used later by other
-        scripts. Then load images from input_folder. 
+        Load images from input_folder. 
         
         Root folder structure:
             data --> train ----> image
@@ -24,9 +23,6 @@ class ImageProcessor(object):
                      test -----> image
                      |           mask
                      results
-                     
-        Caution!: It removes everything included in folders. Results should be
-        saved, before initialization of the ImageProcessor.
 
         Parameters
         ----------
@@ -47,8 +43,10 @@ class ImageProcessor(object):
         self.images = []
         self.masks = []
         
-        self.create_root_skeleton()
-        print("Loading images...")
+        if test_set:
+            print("Loading images...[TEST SET]")
+        else:
+            print("Loading images...")
         self._read_image_names()
         self._print_image_names()
         self._load_images()
@@ -127,6 +125,7 @@ class ImageProcessor(object):
         None.
 
         """
+        print("Normalization...")
         images = np.asarray(self.images)
         images = images.astype(np.float32)
         
@@ -166,7 +165,7 @@ class ImageProcessor(object):
         None.
 
         """
-        
+        print("Resizing...")
         if not self.test_set:
             images = []
             masks = []
@@ -180,6 +179,7 @@ class ImageProcessor(object):
         else:
             images = []
             for image in self.images:
+                zoom_size = target_size[0]/image.shape[0], target_size[1]/image.shape[0], target_size[2]/image.shape[2]
                 images.append(self._crop_image(ndimage.zoom(image, zoom_size),target_size))
             
             self.images = images
@@ -199,6 +199,7 @@ class ImageProcessor(object):
         None.
 
         """
+        "Cropping..."
         if not self.test_set:
             images = []
             masks = []
@@ -247,45 +248,14 @@ class ImageProcessor(object):
         minz, maxz = off_z, target_z + off_z
         
         return image[minx:maxx, miny:maxy, minz:maxz]
-        
-    def create_root_skeleton(self, preserve_results=False):
-        """
-        Generate new empty root folder structure.
-
-        Parameters
-        ----------
-        preserve_results : bool, optional
-            If preserve_results is True, it do not regenerate 'data/results'. 
-            The default is False.
-
-        Returns
-        -------
-        None.
-
-        """
-        
-        root_folders = ['data/train', 'data/val', 'data/test', 'data/results']
-        folder_tree = ['data/train',
-               'data/train/image',
-               'data/train/mask',
-               'data/val',
-               'data/val/image',
-               'data/val/mask',
-               'data/test',
-               'data/test/image',
-               'data/test/mask',
-               'data/results']
-        
-        if preserve_results:
-            root_folders.remove('data/results')
-            folder_tree.remove('data/results')
-            
-        for i in root_folders:
-            if os.path.exists(i):
-                shutil.rmtree(i)
-
-        for i in folder_tree:
-            os.mkdir(i)
+    
+    def check_output(self, output_folder):
+        if os.path.exists(output_folder):
+            choice = input("The output folder already exist. Overwrite?[yn]")
+            if choice.lower() == "y":
+                return True
+            return False
+        return True
     
     def save_images(self, output_folder, index_list=None):
         """
@@ -306,7 +276,8 @@ class ImageProcessor(object):
         -------
         None.
 
-        """       
+        """
+        print("Saving...")
         if not self.test_set:
             if not os.path.exists(output_folder):
                 os.makedirs(os.path.join(output_folder,'image'))
@@ -328,4 +299,23 @@ class ImageProcessor(object):
             else:
                 for i in index_list:
                     nrrd.write(os.path.join(output_folder, 'image', self.image_names[i]), self.images[i])
+        print(f"Images saved in {output_folder}.")
 
+def main():
+    parser = argparse.ArgumentParser(description="Preprocess and normalize images")
+    parser.add_argument('-directory', help='path to raw image directory.', type=str, required=True)
+    parser.add_argument('-norm_param', help='json with normalization parameters', type=str, default=None)
+    parser.add_argument('-output', help='path to output directory', type=str, required=True)
+    parser.add_argument('-test_set', help='working with test set', action='store_true', default=False)
+
+    args = parser.parse_args()
+
+    processor = ImageProcessor(args.directory, args.test_set)
+    if processor.check_output(args.output):
+        processor.crop_images((512,512,64))
+        processor.resize_images((128,128,128))
+        processor.normalize(args.norm_param)
+        processor.save_images(args.output)
+
+if __name__ == '__main__':
+    main()
