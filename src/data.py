@@ -63,51 +63,14 @@ class DataManager():
             self.train_size, self.val_size, self.test_size = len(self.train_list), len(self.val_list), len(self.test_list)
             self.input_size = image_shape + (1,)
         
-   
-    def train_generator(self, epochs, batch_size=0):
-        """
-        Train generator with batch image preloading, to improve the speed
-        of image reading by network. batch_size=0 reads the whole dataset.
-
-        Parameters
-        ----------
-        epochs : int
-            number of training epochs.
-        batch_size : int, optional
-            The number of images that should be preloaded in memory. The default is 0.
-            If batch_size=0, whole dataset is loaded.
-
-        Yields
-        ------
-        image : tensor
-            image tensor.
-        mask : tensor
-            binary mask tensor.
-
-        """
-        if batch_size == 0: batch_size = len(self.train_list)
-        for time in range(epochs):
-            i = 0
-            while batch_size * i <= len(self.train_list):
-                tensors = []
-                for item in self.train_list[batch_size*i:batch_size*i+batch_size]:
-                    image = nrrd.read(os.path.join(self.train_folder, 'image', item))[0]
-                    image = np.reshape(image, image.shape + (1,))
-                    image = np.reshape(image, (1,) + image.shape)
-                    image = tf.convert_to_tensor(image)
-                    
-                    mask = nrrd.read(os.path.join(self.train_folder, 'mask', item))[0]
-                    mask = np.reshape(mask, mask.shape + (1,))
-                    mask = np.reshape(mask, (1,) + mask.shape)
-                    mask = tf.convert_to_tensor(mask)
-                    
-                    tensors.append((image, mask))
+    def train_generator(self):
+        while True:
+            for item in self.train_list:
+                image = nrrd.read(os.path.join(self.train_folder, 'image', item))[0]
+                mask = nrrd.read(os.path.join(self.train_folder, 'mask', item))[0]
                 
-                for image, mask in tensors:
-                    yield image, mask
-                
-                i+=1
-    
+                yield image, mask
+
     def train_patches_generator(self, epochs):
         """
         Train generator that loads all images in memory, extract patches.Finally
@@ -226,7 +189,11 @@ class DataManager():
         """
         patches_nu = self._count_patches()
         return len(self.train_list) * patches_nu, len(self.val_list) * patches_nu, len(self.test_list) * patches_nu
-                        
+             
+    def get_augmented_train_size(self, rotate, deform, combo):
+        # TODO filters should be added in future.
+        return len(self.train_list) * (rotate+deform+combo)
+            
     def _extract_test_patches(self, image, image_title, patch_size, stride):
         image_h, image_w, image_d = image.shape
         
@@ -256,7 +223,7 @@ class DataManager():
         return patches
 
                 
-    def val_generator(self, epochs):
+    def val_generator(self):
         """
         Validation set generator. Load image and binary mask, then yield
         image binary and mask tensor.
@@ -274,7 +241,8 @@ class DataManager():
             mask tensor.
 
         """
-        for i in range(epochs):
+       # for i in range(epochs):
+        while True:
             for item in self.val_list:
                 image = nrrd.read(os.path.join(self.val_folder,'image', item))[0]
                 image = np.reshape(image, image.shape + (1,))
@@ -476,12 +444,15 @@ class DataManager():
         nrrd.write(f'{self.result_folder}/{self.test_list[0]}', fused_image)
             
     def get_train_size(self):
+        #This is not true anymore
         return self.train_size
 
     def get_val_size(self):
+        #This is not true anymore
         return self.val_size
 
     def get_test_size(self):
+        #This is not true anymore
         return self.test_size
     
     def get_input_size(self):

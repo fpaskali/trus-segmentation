@@ -8,9 +8,10 @@ Created on Fri Oct  4 13:58:48 2019
 import os, time
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from data import DataManager
-from models.vnet import model1, model2, model3
-from tensorflow.keras.callbacks import ModelCheckpoint
+from data import DataManager 
+from augment import augment_generator_probability
+from models.dynamic_vnet import VnetDynamicModel
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.backend import clear_session
 
 # Setting dynamically grow memory for GPU
@@ -31,9 +32,8 @@ def force_CPU():
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
-def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=None, stride_size=None,
-          train_folder='data/train', val_folder='data/val', test_folder='data/test',
-          result_folder=f'data/results', force_cpu=False):
+def train(model_name, image_size, epochs, hyper_par, train_folder='data/train', 
+          val_folder='data/val', force_cpu=False):
     """
     Train a model in a predefined number of epochs. After training a graph with
     model metrics will be saved in data/metrics/{model_name}. The weights are
@@ -41,27 +41,16 @@ def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=N
 
     Parameters
     ----------
+    model_name : str, optional
+        The name of the model. It is used for saving metrics and weights.
+    image_size : tuple
+        The shape of the numpy array.
     epochs : int
         Number of epochs to train the model.
-    image_size : tuple
-        The size of the whole image, or the image from which the patches will
-        be extracted.
-    model_name : str, optional
-        Choose between 3 models from models.vnet. The default is "model1".
-    batch_size : int, optional
-        The number of images in mini-batch, that will be preloaded in memory. The default is 100.
-    patch_size : tuple, optional
-        the size of the patch. E.g. (128,128,32). The default is None.
-    stride_size : tuple, optional
-        the size of the stride. E.g. (64,64,16). The default is None.
+    hyper_par : dict
+        It contains all model hyperparameters.
     train_folder : str, optional
         path to train folder, with image and mask subfolders. The default is 'data/train'.
-    val_folder : str, optional
-        path to val folder, with image and mask subfolders. The default is 'data/val'.
-    test_folder : str, optional
-        path to test folder, with image and mask subfolders. The default is 'data/test'.
-    result_folder : str, optional
-        path to result folder. The default is 'data/results/{model_name}'.
     force_cpu : bool, optional
         A switch to enable CPU training. Not recommended, because GPU training
         is faster. The default is False.
@@ -70,31 +59,38 @@ def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=N
     if force_cpu:
         force_CPU()
         
-    data_manager = DataManager(train_folder, val_folder, test_folder, f'{result_folder}/{model_name}', 
-                               image_size, patch_size, stride_size)
-
-    train_size = data_manager.get_train_size()
-    val_size = data_manager.get_val_size()
-    if (patch_size and stride_size):
-        train_data = data_manager.train_patches_generator(epochs)
-        val_data = data_manager.val_patches_generator(epochs)
-    else:   
-        train_data = data_manager.train_generator(epochs, batch_size)
-        val_data = data_manager.val_generator(epochs=epochs)
+    data_manager = DataManager(train_folder, val_folder, image_shape=image_size)
     
-    if model_name == 'model1':
-        model = model1(input_size=data_manager.get_input_size())
-    elif model_name == 'model2':
-        model = model2(input_size=data_manager.get_input_size())
-    elif model_name == 'model3':
-        model = model3(input_size=data_manager.get_input_size())
+    train_size = data_manager.get_train_size() * hyper_par["factor"]
+    val_size = data_manager.get_val_size()
+    train_data = data_manager.train_generator()
+    val_data = data_manager.val_generator()
+    
+    model = VnetDynamicModel(input_shape=data_manager.get_input_size(), num_classes=1)
 
-    model_checkpoint = ModelCheckpoint(f'{model_name}_checkpoint.hdf5', monitor='loss', 
-                                       verbose=1, save_best_only=True, 
-                                       save_weights_only=False,
-                                       mode='auto', save_freq=train_size)
+    model = model.build(l_rate=hyper_par["l_rate"], beta1=hyper_par["beta1"],beta2=hyper_par["beta2"],
+                        ams_grad=hyper_par["ams_grad"], model_loss=hyper_par["loss"], fifth_level=hyper_par["fifth"])
 
-    history = model.fit(x=train_data, validation_data=val_data,
+    model_checkpoint = EarlyStopping(  monitor='val_loss', 
+                                       min_delta=0,
+                                       patience=3,
+                                       verbose=1,
+                                       mode="auto",
+                                       baseline=None,
+                                       restore_best_weights=True
+                                     )
+    
+    augmented_train_data = augment_generator_probability(train_data, 
+                                                 factor=hyper_par["factor"],
+                                                 rotate_p=hyper_par["rotate"],
+                                                 deform_p=hyper_par["deform"], 
+                                                 filters_p=hyper_par["filters"],
+                                                 mean_filter_p=0.33, 
+                                                 median_filter_p=0.33, 
+                                                 gauss_filter_p=0.33,
+                                                 epochs=epochs)
+
+    history = model.fit(x=augmented_train_data, validation_data=val_data,
                         steps_per_epoch=train_size, validation_steps=val_size,
                         epochs=epochs, verbose=1, callbacks=[model_checkpoint])
     
@@ -121,10 +117,18 @@ def train(epochs, image_size, model_name ="model1", batch_size=100, patch_size=N
     plt.savefig(f'metrics/{model_name}/{time.strftime("%Y%m%d_%H%M")}_training_acc.png')
     plt.close()
     
+    plt.plot(history.history['dice_coef'])
+    plt.plot(history.history['val_dice_coef'])
+    plt.title('Vnet Model DSC')
+    plt.ylabel('DSC')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Valid'], loc='upper left')
+    plt.savefig(f'metrics/{model_name}/{time.strftime("%Y%m%d_%H%M")}_training_dsc.png')
+    plt.close()
+    
     clear_session()
      
-def test(image_size, model_name ="model1", batch_size=100, patch_size=None, stride_size=None,
-          train_folder='data/train', val_folder='data/val', test_folder='data/test',
+def test(model_name, image_size, hyper_par, test_folder='data/test',
           result_folder='data/results', force_cpu=False):
     """
     Use weights stored in HDF5 format to perform segmentation. A NRRD results 
@@ -132,25 +136,16 @@ def test(image_size, model_name ="model1", batch_size=100, patch_size=None, stri
 
     Parameters
     ----------
-    image_size : tuple
-        The size of the whole image, or the image from which the patches will
-        be extracted.
     model_name : str, optional
-        Choose between 3 models from models.vnet. The default is "model1".
-    batch_size : int, optional
-        The number of images in mini-batch, that will be preloaded in memory. The default is 100.
-    patch_size : tuple, optional
-        the size of the patch. E.g. (128,128,32). The default is None.
-    stride_size : tuple, optional
-        the size of the stride. E.g. (64,64,16). The default is None.
-    train_folder : str, optional
-        path to train folder, with image and mask subfolders. The default is 'data/train'.
-    val_folder : str, optional
-        path to val folder, with image and mask subfolders. The default is 'data/val'.
+        The name of the model. It is used for saving metrics and weights.
+    image_size : tuple
+        The shape of the numpy array.
+    hyper_par : dict
+        It contains all model hyperparameters.
     test_folder : str, optional
         path to test folder, with image and mask subfolders. The default is 'data/test'.
     result_folder : str, optional
-        path to result folder. The default is 'data/results/{model_name}'.
+        path to result folder. The default is 'data/results/'.
     force_cpu : bool, optional
         A switch to enable CPU training. Not recommended, because GPU training
         is faster. The default is False.
@@ -158,26 +153,97 @@ def test(image_size, model_name ="model1", batch_size=100, patch_size=None, stri
     if force_cpu:
         force_CPU()
         
-    data_manager = DataManager(train_folder, val_folder, test_folder, f'{result_folder}/{model_name}', 
-                               image_size, patch_size, stride_size)
+    data_manager = DataManager(test_fodler=test_folder, 
+                               results_folder=f'{result_folder}/{model_name}', 
+                               image_shape=image_size)
     
-    if model_name == 'model1':
-        model = model1(input_size=data_manager.get_input_size(), weights=f'{model_name}_weights.hdf5')
-    elif model_name == 'model2':
-        model = model2(input_size=data_manager.get_input_size(), weights=f'{model_name}_weights.hdf5')
-    elif model_name == 'model3':
-        model = model3(input_size=data_manager.get_input_size(), weights=f'{model_name}_weights.hdf5')
+    model = VnetDynamicModel(input_shape=data_manager.get_input_size(), 
+                             num_classes=1, weights=f"{model_name}_weights.hdf5")
+    
+    model = model.build(l_rate=hyper_par["l_rate"], beta1=hyper_par["beta1"],beta2=hyper_par["beta2"],
+                        ams_grad=hyper_par["ams_grad"], model_loss=hyper_par["loss"], fifth_level=hyper_par["fifth"])
     
     test_size = data_manager.get_test_size()
-    if (patch_size and stride_size):
-        test_data = data_manager.test_patches_generator()
-        results = model.predict_generator(test_data, steps=test_size, verbose=1)
-        data_manager.save_result_patches(results)
-    else:   
-        test_data = data_manager.test_generator()
-        results = model.predict_generator(test_data, steps=test_size, verbose=1)
-        data_manager.save_result(results)
+    
+    test_data = data_manager.test_generator()
+    results = model.predict_generator(test_data, steps=test_size, verbose=1)
+    data_manager.save_result(results)
 
     clear_session()
 
+train("the_best_model_12.11.2020", (128,128,128), 150, hyper_par = {"factor":15,
+                                                                  "l_rate":0.0001,
+                                                                  "beta1":0.43649430628078034,
+                                                                  "beta2":0.5898459767675351,
+                                                                  "ams_grad":False,
+                                                                  "loss":"jaccard",
+                                                                  "fifth":True,
+                                                                  "rotate":0.533,
+                                                                  "deform":0.901,
+                                                                  "filters":0.370})
 
+train("second_best_model_12.11.2020", (128,128,128), 150, hyper_par={"factor":15,
+                                                                    "l_rate":0.001,
+                                                                    "beta1":0.14369651566686886,
+                                                                    "beta2":0.8290607750524758,
+                                                                    "ams_grad":False,
+                                                                    "loss":"jaccard",
+                                                                    "fifth":True,
+                                                                    "rotate":0.868,
+                                                                    "deform":0.130,
+                                                                    "filters":0.807})
+
+train("third_best_model_12.11.2020", (128,128,128), 150, hyper_par={"factor":15,
+                                                                    "l_rate":0.0001,
+                                                                    "beta1":0.5209463997379207,
+                                                                    "beta2":0.7764027455241465,
+                                                                    "ams_grad":False,
+                                                                    "loss":"jaccard",
+                                                                    "fifth":False,
+                                                                    "rotate":0.268,
+                                                                    "deform":0.958,
+                                                                    "filters":0.688})
+
+# test("the_best_model_3.11.2020", (128,128,128),  test_folder="data/val", hyper_par = {"factor":15,
+#                                                                                     "l_rate":0.0001,
+#                                                                                     "beta1":0.43649430628078034,
+#                                                                                     "beta2":0.5898459767675351,
+#                                                                                     "ams_grad":False,
+#                                                                                     "loss":"jaccard",
+#                                                                                     "fifth":True,
+#                                                                                     "rotate":0.533,
+#                                                                                     "deform":0.901,
+#                                                                                     "filters":0.370})
+
+# test("second_best_model_3.11.2020", (128,128,128), test_folder="data/val", hyper_par={"factor":15,
+#                                                                                     "l_rate":0.001,
+#                                                                                     "beta1":0.14369651566686886,
+#                                                                                     "beta2":0.8290607750524758,
+#                                                                                     "ams_grad":False,
+#                                                                                     "loss":"jaccard",
+#                                                                                     "fifth":True,
+#                                                                                     "rotate":0.868,
+#                                                                                     "deform":0.130,
+#                                                                                     "filters":0.807})
+
+# test("third_best_model_3.11.2020", (128,128,128), test_folder="data/val", hyper_par={"factor":15,
+#                                                                                     "l_rate":0.0001,
+#                                                                                     "beta1":0.5209463997379207,
+#                                                                                     "beta2":0.7764027455241465,
+#                                                                                     "ams_grad":False,
+#                                                                                     "loss":"jaccard",
+#                                                                                     "fifth":False,
+#                                                                                     "rotate":0.268,
+#                                                                                     "deform":0.958,
+#                                                                                     "filters":0.688})
+
+# test("the_best_model_3.11.2020", (128,128,128), test_folder="data/test", hyper_par = {"factor":15,
+#                                                                                     "l_rate":0.0001,
+#                                                                                     "beta1":0.43649430628078034,
+#                                                                                     "beta2":0.5898459767675351,
+#                                                                                     "ams_grad":False,
+#                                                                                     "loss":"jaccard",
+#                                                                                     "fifth":True,
+#                                                                                     "rotate":0.533,
+#                                                                                     "deform":0.901,
+#                                                                                     "filters":0.370})

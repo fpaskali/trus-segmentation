@@ -5,27 +5,21 @@ Created on Thu Sep 26 11:25:24 2019
 
 @author: paskali
 """
-from functools import partial
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras import Input
 from tensorflow.keras.layers import Conv3D, PReLU, add, Conv3DTranspose, Concatenate, BatchNormalization, Dropout
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from kerastuner import HyperParameters
-from kerastuner.tuners import Hyperband
-from kerastuner import HyperModel
 
-class VnetHyperModel(HyperModel):
+class VnetDynamicModel():
     
-    def __init__(self, input_shape, num_classes):
+    def __init__(self, input_shape, num_classes, weights=None):
         self.input_shape = input_shape
         self.num_classes = num_classes
+        self.weights=weights
     
-    def build(self, hp):
-        ##### Fifth level
-        fifth_level = hp.Boolean('fifth_level', default=True)
-        
+    def build(self, l_rate, beta1, beta2, ams_grad, model_loss, fifth_level):    
         ##### Vnet model
         inputs = Input(self.input_shape)
         conv1_1 = Conv3D(filters=16, kernel_size=(5,5,5), activation=None, padding = 'same', strides =(1,1,1))(inputs)
@@ -126,23 +120,24 @@ class VnetHyperModel(HyperModel):
         
         model = Model(inputs=inputs, outputs=output)
         
-        optimizer = Adam(learning_rate=hp.Choice('learning_rate',
-                                                 [1e-2,1e-3,1e-4,1e-5, 1e-6, 1e-7]), 
-                         beta_1=hp.Float('beta_1', min_value=0.1, max_value=0.9, default=0.9), 
-                         beta_2=hp.Float('beta_2', min_value=0.1, max_value=0.999, default=0.999), 
-                         amsgrad=hp.Boolean("amsgrad"))
+        optimizer = Adam(learning_rate=l_rate, 
+                         beta_1=beta1, 
+                         beta_2=beta2, 
+                         amsgrad=ams_grad)
         
-        loss = hp.Choice('loss', ['jaccard', 'dice'])
+        loss = model_loss
         
         if loss == 'dice':
            loss = dice_coef 
         else:
             loss = jaccard_distance_loss
         
-        
         model.compile(optimizer=optimizer, 
                       loss = loss,
-                      metrics = ['accuracy'])
+                      metrics = ['accuracy', dice_coef]) # Added dice coef as metric to be measured during the training.
+        
+        if(self.weights):
+            model.load_weights(self.weights)
         
         return model
 

@@ -17,11 +17,9 @@ def _create_metrics_csv(filename):
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             
             writer.writeheader()
-    else:
-        pass
 
 def save_metrics_to_csv(filename, result_folder='data/results', reference_folder='data/test/mask',
-                        voxelspacing=(0.538624, 0.538624, 0.5)):
+                        voxelspacing=(0.5, 0.5, 0.5)):
     """
     Measure various metrics between images in result and reference folder. The
     images should have same name.
@@ -74,7 +72,7 @@ def main():
     parser = argparse.ArgumentParser(description="Measures DC, JC, Hausdorff, ASD and saves in csv")
     parser.add_argument('-result', help='path to results folder.', required=True)
     parser.add_argument('-ref', help='path to reference folder.', required=True)
-    parser.add_argument('-vs', help='voxel spacing', type=tuple, default=(0.538624, 0.538624, 0.5))
+    parser.add_argument('-vs', help='voxel spacing', type=tuple, default=(0.5, 0.5, 0.5))
     parser.add_argument('-csv', help='name of csv file.', required=True)
 
     args = parser.parse_args()
