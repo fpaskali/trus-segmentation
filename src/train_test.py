@@ -153,8 +153,8 @@ def test(model_name, image_size, hyper_par, test_folder='data/test',
     if force_cpu:
         force_CPU()
         
-    data_manager = DataManager(test_fodler=test_folder, 
-                               results_folder=f'{result_folder}/{model_name}', 
+    data_manager = DataManager(test_folder=test_folder, 
+                               result_folder=f'{result_folder}/{model_name}', 
                                image_shape=image_size)
     
     model = VnetDynamicModel(input_shape=data_manager.get_input_size(), 
@@ -166,54 +166,54 @@ def test(model_name, image_size, hyper_par, test_folder='data/test',
     test_size = data_manager.get_test_size()
     
     test_data = data_manager.test_generator()
-    results = model.predict_generator(test_data, steps=test_size, verbose=1)
+    results = model.predict(test_data, steps=test_size, verbose=1)
     data_manager.save_result(results)
 
     clear_session()
 
-train("the_best_model_12.11.2020", (128,128,128), 150, hyper_par = {"factor":15,
-                                                                  "l_rate":0.0001,
-                                                                  "beta1":0.43649430628078034,
-                                                                  "beta2":0.5898459767675351,
-                                                                  "ams_grad":False,
-                                                                  "loss":"jaccard",
-                                                                  "fifth":True,
-                                                                  "rotate":0.533,
-                                                                  "deform":0.901,
-                                                                  "filters":0.370})
+# train("the_best_model_3.11.2020", (128,128,128), 150, hyper_par = {"factor":15,
+#                                                                   "l_rate":0.0001,
+#                                                                   "beta1":0.43649430628078034,
+#                                                                   "beta2":0.5898459767675351,
+#                                                                   "ams_grad":False,
+#                                                                   "loss":"jaccard",
+#                                                                   "fifth":True,
+#                                                                   "rotate":0.533,
+#                                                                   "deform":0.901,
+#                                                                   "filters":0.370})
 
-train("second_best_model_12.11.2020", (128,128,128), 150, hyper_par={"factor":15,
-                                                                    "l_rate":0.001,
-                                                                    "beta1":0.14369651566686886,
-                                                                    "beta2":0.8290607750524758,
-                                                                    "ams_grad":False,
-                                                                    "loss":"jaccard",
-                                                                    "fifth":True,
-                                                                    "rotate":0.868,
-                                                                    "deform":0.130,
-                                                                    "filters":0.807})
+# train("second_best_model_3.11.2020", (128,128,128), 150, hyper_par={"factor":15,
+#                                                                     "l_rate":0.001,
+#                                                                     "beta1":0.14369651566686886,
+#                                                                     "beta2":0.8290607750524758,
+#                                                                     "ams_grad":False,
+#                                                                     "loss":"jaccard",
+#                                                                     "fifth":True,
+#                                                                     "rotate":0.868,
+#                                                                     "deform":0.130,
+#                                                                     "filters":0.807})
 
-train("third_best_model_12.11.2020", (128,128,128), 150, hyper_par={"factor":15,
-                                                                    "l_rate":0.0001,
-                                                                    "beta1":0.5209463997379207,
-                                                                    "beta2":0.7764027455241465,
-                                                                    "ams_grad":False,
-                                                                    "loss":"jaccard",
-                                                                    "fifth":False,
-                                                                    "rotate":0.268,
-                                                                    "deform":0.958,
-                                                                    "filters":0.688})
+# train("third_best_model_3.11.2020", (128,128,128), 150, hyper_par={"factor":15,
+#                                                                     "l_rate":0.0001,
+#                                                                     "beta1":0.5209463997379207,
+#                                                                     "beta2":0.7764027455241465,
+#                                                                     "ams_grad":False,
+#                                                                     "loss":"jaccard",
+#                                                                     "fifth":False,
+#                                                                     "rotate":0.268,
+#                                                                     "deform":0.958,
+#                                                                     "filters":0.688})
 
-# test("the_best_model_3.11.2020", (128,128,128),  test_folder="data/val", hyper_par = {"factor":15,
-#                                                                                     "l_rate":0.0001,
-#                                                                                     "beta1":0.43649430628078034,
-#                                                                                     "beta2":0.5898459767675351,
-#                                                                                     "ams_grad":False,
-#                                                                                     "loss":"jaccard",
-#                                                                                     "fifth":True,
-#                                                                                     "rotate":0.533,
-#                                                                                     "deform":0.901,
-#                                                                                     "filters":0.370})
+test("the_best_model_12.11.2020", (128,128,128),  test_folder="data/val", hyper_par = {"factor":15,
+                                                                                    "l_rate":0.0001,
+                                                                                    "beta1":0.43649430628078034,
+                                                                                    "beta2":0.5898459767675351,
+                                                                                    "ams_grad":False,
+                                                                                    "loss":"jaccard",
+                                                                                    "fifth":True,
+                                                                                    "rotate":0.533,
+                                                                                    "deform":0.901,
+                                                                                    "filters":0.370})
 
 # test("second_best_model_3.11.2020", (128,128,128), test_folder="data/val", hyper_par={"factor":15,
 #                                                                                     "l_rate":0.001,

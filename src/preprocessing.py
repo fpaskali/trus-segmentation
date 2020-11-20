@@ -257,6 +257,23 @@ class ImageProcessor(object):
             return False
         return True
     
+    def train_val_split(data, val_size, random_seed=None):
+        data_idx = [*range(len(data))]
+        random.seed(random_seed)
+        random.shuffle(data_idx)
+        
+        if type(val_size) == float:
+            val_size = round(len(data_idx) * val_size)
+        elif type(val_size) == int:
+            val_size = val_size
+        else:
+            raise ValueError('val_size should be int or float')
+            
+        val = data_idx[:val_size]
+        train = data_idx[val_size:]
+        
+        return train, val
+    
     def save_images(self, output_folder, index_list=None):
         """
         Save images and binary masks in output_folder.
