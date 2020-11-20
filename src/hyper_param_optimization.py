@@ -8,7 +8,7 @@ Created on Fri Oct  4 13:58:48 2019
 import os
 import tensorflow as tf
 from data import DataManager
-from augment_v2 import augment_generator_probability
+from augment import augment_generator_probability
 from models.hyper_vnet import VnetHyperModel
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.backend import clear_session
@@ -52,7 +52,7 @@ class MyTuner(BayesianOptimization):
         
         super(MyTuner, self).run_trial(trial, train_ds, *args, **kwargs)
 
-def train(image_size, epochs, fact = 15, train_folder='data/train', 
+def tune(image_size, epochs, fact = 15, train_folder='data/train', 
           val_folder='data/val', force_cpu=False):
     """
     Tune the parameters and print the best 10 models.
@@ -112,4 +112,4 @@ def train(image_size, epochs, fact = 15, train_folder='data/train',
     clear_session()
              
 if __name__ == '__main__':
-    train(150,(128,128,128))
+    tune(image_size=(128,128,128), epochs=150)

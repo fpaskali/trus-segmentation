@@ -13,7 +13,7 @@ Load images and binary masks from train folder, and apply various methods
 for transformation. Finally save them in the train folder.
 """
 
-import random, time, csv
+import random, time, csv, os
 import numpy as np
 import elasticdeform
 from scipy import ndimage
@@ -251,7 +251,9 @@ def augment_generator_probability(train_ds, factor, rotate_p, deform_p, filters_
         tensor of the mask.
 
     """
-    log_name = f'logs/{time.strftime("%Y%m%d%H%M",time.localtime())}.log'
+    if not os.path.exists("./logs"):
+        os.mkdir("logs")
+    log_name = f'logs/aug_{time.strftime("%Y%m%d%H%M",time.localtime())}.log'
     with open(log_name, 'w', newline='') as csvfile:
         fieldnames = ['rotate', 'deform', 'filters', 'filter']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -266,10 +268,10 @@ def augment_generator_probability(train_ds, factor, rotate_p, deform_p, filters_
                       'filter':'no'}
                 image, mask = x, y
                 if random.random() < rotate_p:
-                    image, mask = rotation(image, mask, 1)
+                    image, mask = rotation(image, mask)
                     inst['rotate'] = 'on'
                 if random.random() < deform_p:
-                    image, mask = elastic_deform(image, mask, 1)
+                    image, mask = elastic_deform(image, mask)
                     inst['deform'] = 'on'
                 if random.random() < filters_p:
                     inst['filters'] = 'on'
