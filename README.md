@@ -56,7 +56,7 @@ scikit-image >= 0.16.2
 It is important before training to move unprocessed NRRD images and binary masks to 'data/raw_train/image', 'data/raw_train/mask' or for testing 'data/raw_test/image', 'data/raw_test/mask'. Images and binary mask should have same name. 
 *The placeholder text files in the folders should be removed before stating the analysis.
 
-The workflow was tested using specific size of images. First, the region of interest was extracted from the image with size 512px * 512px * 64px. Then, the image was rescaled to 128px x 128px x 128px. The scripts should work with different resolution as well, but first most of the scripts should be modified accordingly.
+The workflow was tested using specific size of images. First, the region of interest was extracted from the image with size 512px * 512px * 64px. Then, the image was rescaled to 128px * 128px * 128px. The scripts should work with different resolution as well, but first most of the scripts should be modified accordingly.
 
 ### Examples:
 #### Preprocessing (preprocessing.py)
