@@ -72,28 +72,28 @@ The workflow was tested using specific size of images. First, the region of inte
 #### Train and test (train_test.py)
 ```python
 train("the_best_model", (128,128,128), 150, hyper_par = {"factor":15,
-                                                                  "l_rate":0.0001,
-                                                                  "beta1":0.43649430628078034,
-                                                                  "beta2":0.5898459767675351,
-                                                                  "ams_grad":False,
-                                                                  "loss":"jaccard",
-                                                                  "fifth":True,
-                                                                  "rotate":0.533,
-                                                                  "deform":0.901,
-                                                                  "filters":0.370})
+                                                         "l_rate":0.0001,
+                                                         "beta1":0.43649430628078034,
+                                                         "beta2":0.5898459767675351,
+                                                         "ams_grad":False,
+                                                         "loss":"jaccard",
+                                                         "fifth":True,
+                                                         "rotate":0.533,
+                                                         "deform":0.901,
+                                                         "filters":0.370})
 ```
 
 ```python
 test("the_best_model", (128,128,128),  test_folder="data/val", hyper_par = {"factor":15,
-                                                                                   "l_rate":0.0001,
-                                                                                   "beta1":0.43649430628078034,
-                                                                                   "beta2":0.5898459767675351,
-                                                                                   "ams_grad":False,
-                                                                                   "loss":"jaccard",
-                                                                                   "fifth":True,
-                                                                                   "rotate":0.533,
-                                                                                   "deform":0.901,
-                                                                                   "filters":0.370})
+                                                                            "l_rate":0.0001,
+                                                                            "beta1":0.43649430628078034,
+                                                                            "beta2":0.5898459767675351,
+                                                                            "ams_grad":False,
+                                                                            "loss":"jaccard",
+                                                                            "fifth":True,
+                                                                            "rotate":0.533,
+                                                                            "deform":0.901,
+                                                                            "filters":0.370})
 ```
 
 #### Postprocessing (postprocessing.py)
