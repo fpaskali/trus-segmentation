@@ -2,7 +2,7 @@
 
 This is final fully commented version of the code used in my master thesis "Automatic prostate segmentation in transrectal ultrasound images using modified V-net convolutional neural network" [ADD LINK]
 The repository contains all scripts for complete analysis. They are organized in 5 logical modules.
-![workflow](https://raw.githubusercontent.com/fpaskali/trus-segmentation/master/figures/workflow.png?token=AF5BZXA6ZY24JRLIVB4P2MDA4QOAI)
+![workflow](https://raw.githubusercontent.com/fpaskali/trus-segmentation/master/figures/workflow.png)
 
 ## Preprocessing (preprocessing.py, augment.py)
 ### Preprocessing
@@ -31,10 +31,10 @@ Measures Dice score, Jaccard score, Hausdorf, Average Surface Distance.
 For the analysis two types of models were used, based on V-net model. A four level and a five level V-net neural network. Additionaly, there is a dynamic model which has several hyperparameters and it is intended to be used for hyperparameter optimization.
 
 ### V-net (4 lvl) model
-![4 lvl model](https://raw.githubusercontent.com/fpaskali/trus-segmentation/master/figures/Vnet%20network%20model%204lvl.png?token=AF5BZXGQNNG32RBATVE7KW3A4QMFE)
+![4 lvl model](https://raw.githubusercontent.com/fpaskali/trus-segmentation/master/figures/Vnet%20network%20model%204lvl.png)
 
 ### V-net (5 lvl) model
-![5 lvl model](https://raw.githubusercontent.com/fpaskali/trus-segmentation/master/figures/Vnet%20network%20model%205lvl.png?token=AF5BZXECXNLLIBTTEOPI2XDA4QMFE)
+![5 lvl model](https://raw.githubusercontent.com/fpaskali/trus-segmentation/master/figures/Vnet%20network%20model%205lvl.png)
 
 ## Requirements
 ```
