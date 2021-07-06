@@ -20,10 +20,10 @@ By using a Data manager (data.py) the preprocessed data is read and piped in to 
 Testing uses saved model to predict the prostate structure on preprocessed test images as 3D binary mask. For preprocessing of the test images the same preprocessing steps and scripts are used.
 
 
-## Post-processing
+## Post-processing (postprocessing.py)
 The initial prediction might contain false positive, thus we introduced postprocessing step. In this step, the images are analysed layer by layer and on each layer only the bigest structure is saved. This significantly reduces the number of false positives and improve metrics as Hausdorf distance and Average surface distance.
 
-## Metrics
+## Metrics (metrics.py)
 Measures Dice score, Jaccard score, Hausdorf, Average Surface Distance.
 
 ## Models
