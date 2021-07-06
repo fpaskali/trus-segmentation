@@ -1,7 +1,8 @@
 # Automatic segmentation of prostate in TRUS images using modified V-net convolutional neural network
 
-This is final fully commented version of the code used in my master thesis "Automatic prostate segmentation in transrectal ultrasound images using modified V-net convolutional neural network" [ADD LINK]
+This is final fully commented version of the code used in my master thesis "Automatic prostate segmentation in transrectal ultrasound images using modified V-net convolutional neural network" [[Full text](https://opus.hs-furtwangen.de/frontdoor/index/index/start/0/rows/10/sortfield/score/sortorder/desc/searchtype/simple/query/segmentation+prostate/docId/7343)].
 The repository contains all scripts for complete analysis. They are organized in 5 logical modules.
+
 ![workflow](figures/workflow.png)
 
 ## Preprocessing (preprocessing.py, augment.py)
