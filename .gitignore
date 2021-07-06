@@ -131,6 +131,5 @@ dmypy.json
 *.hdf5
 *.nrrd
 *.hd5
-*.png
 *.csv
 *.json
