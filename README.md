@@ -10,7 +10,7 @@ The repository contains all scripts for complete analysis, which are organized i
 Often, the original medical images have very high resolution and might be heavy on system resources. To address this issue different preprocessing methods are utilized, such as cropping of the region of interest, rescaling, and normalization.
 
 ### Augmentation
-Augmentation is a essential step when working with a limited sample size. The scripts include a collection of numpy and scipy functions, as well as a function for probabilistic augmentation used for hyperparameter optimization. This function generate augmented images on the fly during the hyperparameter optimization, while the frequency of each type of augmentation can be specified when calling the function.
+Augmentation is an essential step when working with a limited sample size. The scripts include a collection of numpy and scipy functions, as well as a function for probabilistic augmentation used for hyperparameter optimization. This function generate augmented images on the fly during the hyperparameter optimization, while the frequency of each type of augmentation can be specified when calling the function.
 
 ## Hyperparameter optimization (hyper_param_optimization.py)
 
