@@ -1,35 +1,35 @@
 # Automatic segmentation of prostate in TRUS images using modified V-net convolutional neural network
 
-This is final fully commented version of the code used in my master thesis "Automatic prostate segmentation in transrectal ultrasound images using modified V-net convolutional neural network" [[Full text](https://opus.hs-furtwangen.de/frontdoor/index/index/start/0/rows/10/sortfield/score/sortorder/desc/searchtype/simple/query/segmentation+prostate/docId/7343)].
-The repository contains all scripts for complete analysis. They are organized in 5 logical modules.
+This is the final fully commented version of the code used in my master thesis "Automatic prostate segmentation in transrectal ultrasound images using modified V-net convolutional neural network" [[Full text](https://opus.hs-furtwangen.de/frontdoor/index/index/start/0/rows/10/sortfield/score/sortorder/desc/searchtype/simple/query/segmentation+prostate/docId/7343)].
+The repository contains all scripts for complete analysis, which are organized into 5 logical modules.
 
 ![workflow](figures/workflow.png)
 
 ## Preprocessing (preprocessing.py, augment.py)
 ### Preprocessing
-Often the original medical images have very high resolution and might be heavy on system resources. To address this issue different preprocessing methods are utilized, such as cropping of the region of interest, rescaling and normalization.
+Often, the original medical images have very high resolution and might be heavy on system resources. To address this issue different preprocessing methods are utilized, such as cropping of the region of interest, rescaling, and normalization.
 
 ### Augmentation
-The essential step when working with limited sample size. The scripts includes a collection of numpy and scipy function, as well as a function for probabilistic augmentation used for hyperparameter optimization. This function generate augmented images on fly during the hyperparameter optimization, while the frequency of each type of augmentation can be specified when calling the function.
+Augmentation is a essential step when working with a limited sample size. The scripts include a collection of numpy and scipy functions, as well as a function for probabilistic augmentation used for hyperparameter optimization. This function generate augmented images on the fly during the hyperparameter optimization, while the frequency of each type of augmentation can be specified when calling the function.
 
 ## Hyperparameter optimization (hyper_param_optimization.py)
 
-Training of a robust model requires a lot of time. To reduce the period of time needed for a search for optimal model, hyperparameter optimization was introduced. The hyperparameter optimization script is built upon Keras Tuner. A custom tuner is implemented that search the best augmentation methods and parameters, a dynamic V-net model (choosing between different loss functions and different model depth). A tuning example can be found in hyper_param_optimization.py.
+Training a robust model requires a lot of time. To reduce the time needed for a search for an optimal model, hyperparameter optimization was introduced. The hyperparameter optimization script is built upon Keras Tuner. A custom tuner has been implemented that search for the best augmentation methods and parameters, a dynamic V-net model (choosing between different loss functions and different model depth). A tuning example can be found in hyper_param_optimization.py.
 
 ## Training and testing (train_test.py)
-By using a Data manager (data.py) the preprocessed data is read and piped in to the fit function. During the training session various metrics are measured and saved, namely loss, accuracy and Sørensen–Dice. 
+By using a Data manager (data.py) the preprocessed data is read and piped into the fit function. During the training session, various metrics are measured and saved, namely loss, accuracy, and Sørensen–Dice. 
 
-Testing uses saved model to predict the prostate structure on preprocessed test images as 3D binary mask. For preprocessing of the test images the same preprocessing steps and scripts are used.
+Testing uses a saved model to predict the prostate structure on preprocessed test images as a 3D binary mask. For preprocessing of the test images the same preprocessing steps and scripts are used.
 
 
 ## Post-processing (postprocessing.py)
-The initial prediction might contain false positive, thus we introduced postprocessing step. In this step, the images are analysed layer by layer and on each layer only the bigest structure is saved. This significantly reduces the number of false positives and improve metrics as Hausdorf distance and Average surface distance.
+The initial prediction might contain false positives, thus we introduced the postprocessing step. In this step, the images are analyzed layer by layer and on each layer, only the largest structure is saved. This significantly reduces the number of false positives and improves metrics as Hausdorf distance and Average surface distance.
 
 ## Metrics (metrics.py)
 Measures Dice score, Jaccard score, Hausdorf, Average Surface Distance.
 
 ## Models
-For the analysis two types of models were used, based on V-net model. A four level and a five level V-net neural network. Additionaly, there is a dynamic model which has several hyperparameters and it is intended to be used for hyperparameter optimization.
+For the analysis, two types of models were used, based on the V-net model, a four-level and a five-level V-net neural network. Additionally, there is a dynamic model which has several hyperparameters and it is intended to be used for hyperparameter optimization.
 
 ### V-net (4 lvl) model
 ![4 lvl model](figures/Vnet%20network%20model%204lvl.png)
@@ -56,7 +56,7 @@ scikit-image >= 0.16.2
 It is important before training to move unprocessed NRRD images and binary masks to 'data/raw_train/image', 'data/raw_train/mask' or for testing 'data/raw_test/image', 'data/raw_test/mask'. Images and binary mask should have same name. 
 *The placeholder text files in the folders should be removed before stating the analysis.
 
-The workflow was tested using specific size of images. First, the region of interest was extracted from the image with size 512px * 512px * 64px. Then, the image was rescaled to 128px * 128px * 128px. The scripts should work with different resolution as well, but first most of the scripts should be modified accordingly.
+The workflow has been tested using a specific size of images. First, the region of interest was extracted from the image with size 512px * 512px * 64px. Then, the images were rescaled to 128px * 128px * 128px. The scripts work with a different resolution as well, but they should be modified accordingly beforehand.
 
 ### Examples:
 #### Preprocessing (preprocessing.py)
