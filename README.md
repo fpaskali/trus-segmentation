@@ -102,7 +102,7 @@ test("the_best_model", (128,128,128),  test_folder="data/val", hyper_par = {"fac
 
 #### Metrics (metrics.py)
 
-`python metrics.py -result="data/result" -result="data/test/mask" -csv="metrics.csv"`
+`python metrics.py -result="data/result" -ref="data/test/mask" -csv="metrics.csv"`
 
 
 
